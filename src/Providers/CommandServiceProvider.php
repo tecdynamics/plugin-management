@@ -5,6 +5,7 @@ namespace Tec\PluginManagement\Providers;
 use Tec\PluginManagement\Commands\PluginActivateAllCommand;
 use Tec\PluginManagement\Commands\PluginActivateCommand;
 use Tec\PluginManagement\Commands\PluginAssetsPublishCommand;
+use Tec\PluginManagement\Commands\PluginCreateCommand;
 use Tec\PluginManagement\Commands\PluginDeactivateAllCommand;
 use Tec\PluginManagement\Commands\PluginDeactivateCommand;
 use Tec\PluginManagement\Commands\PluginRemoveCommand;
@@ -26,6 +27,7 @@ class CommandServiceProvider extends ServiceProvider
             PluginRemoveCommand::class,
             PluginActivateAllCommand::class,
             PluginDeactivateAllCommand::class,
+            PluginCreateCommand::class
         ]);
     }
 }
