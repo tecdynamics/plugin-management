@@ -2,29 +2,23 @@
 
 namespace Tec\PluginManagement\Providers;
 
+use Tec\Base\Facades\BaseHelper;
+use Tec\Base\Supports\ServiceProvider;
 use Tec\Dashboard\Supports\DashboardWidgetInstance;
 use Illuminate\Support\Collection;
-use Illuminate\Support\ServiceProvider;
-use Throwable;
 
 class HookServiceProvider extends ServiceProvider
 {
-    public function boot()
+    public function boot(): void
     {
         add_filter(DASHBOARD_FILTER_ADMIN_LIST, [$this, 'addStatsWidgets'], 15, 2);
     }
 
-    /**
-     * @param array $widgets
-     * @param Collection $widgetSettings
-     * @return array
-     * @throws Throwable
-     */
-    public function addStatsWidgets($widgets, $widgetSettings)
+    public function addStatsWidgets(array $widgets, Collection $widgetSettings): array
     {
-        $plugins = count(scan_folder(plugin_path()));
+        $plugins = count(BaseHelper::scanFolder(plugin_path()));
 
-        return (new DashboardWidgetInstance)
+        return (new DashboardWidgetInstance())
             ->setType('stats')
             ->setPermission('plugins.index')
             ->setTitle(trans('packages/plugin-management::plugin.plugins'))
