@@ -2,22 +2,55 @@
 
 namespace Tec\PluginManagement\Commands;
 
-use Tec\Base\Facades\BaseHelper;
 use Tec\PluginManagement\Services\PluginService;
+use File;
 use Illuminate\Console\Command;
-use Symfony\Component\Console\Attribute\AsCommand;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 
-#[AsCommand('cms:plugin:activate:all', 'Activate all plugins in /plugins directory')]
 class PluginActivateAllCommand extends Command
 {
-    public function handle(PluginService $pluginService): int
+    /**
+     * The console command signature.
+     *
+     * @var string
+     */
+    protected $signature = 'cms:plugin:activate:all';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Activate all plugins in /plugins directory';
+
+    /**
+     * @var PluginService
+     */
+    protected $pluginService;
+
+    /**
+     * PluginActivateCommand constructor.
+     * @param PluginService $pluginService
+     */
+    public function __construct(PluginService $pluginService)
     {
-        foreach (BaseHelper::scanFolder(plugin_path()) as $plugin) {
-            $pluginService->activate($plugin);
+        parent::__construct();
+
+        $this->pluginService = $pluginService;
+    }
+
+    /**
+     * @return boolean
+     * @throws FileNotFoundException
+     */
+    public function handle()
+    {
+        foreach (scan_folder(plugin_path()) as $plugin) {
+            $this->pluginService->activate($plugin);
         }
 
-        $this->components->info('Activated successfully!');
+        $this->info('Activated successfully!');
 
-        return self::SUCCESS;
+        return 0;
     }
 }

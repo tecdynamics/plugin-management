@@ -2,47 +2,68 @@
 
 namespace Tec\PluginManagement\Commands;
 
-use Tec\PluginManagement\Commands\Concern\HasPluginNameValidation;
 use Tec\PluginManagement\Services\PluginService;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
-use Illuminate\Contracts\Console\PromptsForMissingInput;
-use Illuminate\Support\Str;
-use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Input\InputArgument;
 
-#[AsCommand('cms:plugin:remove', 'Remove a plugin in the /platform/plugins directory.')]
-class PluginRemoveCommand extends Command implements PromptsForMissingInput
+class PluginRemoveCommand extends Command
 {
     use ConfirmableTrait;
-    use HasPluginNameValidation;
 
-    public function handle(PluginService $pluginService): int
+    /**
+     * The console command signature.
+     *
+     * @var string
+     */
+    protected $signature = 'cms:plugin:remove {name : The plugin that you want to remove} {--force : Force to remove plugin without confirmation}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Remove a plugin in the /platform/plugins directory.';
+
+    /**
+     * @var PluginService
+     */
+    protected $pluginService;
+
+    /**
+     * PluginRemoveCommand constructor.
+     * @param PluginService $pluginService
+     */
+    public function __construct(PluginService $pluginService)
     {
-        if (! $this->confirmToProceed('Are you sure you want to permanently delete?', true)) {
-            return self::FAILURE;
-        }
+        parent::__construct();
 
-        $this->validatePluginName($this->argument('name'));
-
-        $plugin = Str::afterLast(strtolower($this->argument('name')), '/');
-
-        $result = $pluginService->remove($plugin);
-
-        if ($result['error']) {
-            $this->components->error($result['message']);
-
-            return self::FAILURE;
-        }
-
-        $this->components->info($result['message']);
-
-        return self::SUCCESS;
+        $this->pluginService = $pluginService;
     }
 
-    protected function configure(): void
+    /**
+     * Execute the console command.
+     */
+    public function handle()
     {
-        $this->addArgument('name', InputArgument::REQUIRED, 'The plugin that you want to remove');
-        $this->addOption('force', 'f', null, 'Force to remove plugin without confirmation');
+        if (!$this->confirmToProceed('Are you sure you want to permanently delete?', true)) {
+            return 1;
+        }
+
+        if (!preg_match('/^[a-z0-9\-]+$/i', $this->argument('name'))) {
+            $this->error('Only alphabetic characters are allowed.');
+            return 1;
+        }
+
+        $plugin = strtolower($this->argument('name'));
+        $result = $this->pluginService->remove($plugin);
+
+        if ($result['error']) {
+            $this->error($result['message']);
+            return 1;
+        }
+
+        $this->info($result['message']);
+
+        return 0;
     }
 }

@@ -2,22 +2,55 @@
 
 namespace Tec\PluginManagement\Commands;
 
-use Tec\Base\Facades\BaseHelper;
 use Tec\PluginManagement\Services\PluginService;
+use File;
 use Illuminate\Console\Command;
-use Symfony\Component\Console\Attribute\AsCommand;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 
-#[AsCommand('cms:plugin:deactivate:all', 'Deactivate all plugins in /plugins directory')]
 class PluginDeactivateAllCommand extends Command
 {
-    public function handle(PluginService $pluginService): int
+    /**
+     * The console command signature.
+     *
+     * @var string
+     */
+    protected $signature = 'cms:plugin:deactivate:all';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Deactivate all plugins in /plugins directory';
+
+    /**
+     * @var PluginService
+     */
+    protected $pluginService;
+
+    /**
+     * PluginActivateCommand constructor.
+     * @param PluginService $pluginService
+     */
+    public function __construct(PluginService $pluginService)
     {
-        foreach (BaseHelper::scanFolder(plugin_path()) as $plugin) {
-            $pluginService->deactivate($plugin);
+        parent::__construct();
+
+        $this->pluginService = $pluginService;
+    }
+
+    /**
+     * @return boolean
+     * @throws FileNotFoundException
+     */
+    public function handle()
+    {
+        foreach (scan_folder(plugin_path()) as $plugin) {
+            $this->pluginService->deactivate($plugin);
         }
 
-        $this->components->info('Deactivated successfully!');
+        $this->info('Deactivated successfully!');
 
-        return self::SUCCESS;
+        return 0;
     }
 }

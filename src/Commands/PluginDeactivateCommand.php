@@ -2,40 +2,63 @@
 
 namespace Tec\PluginManagement\Commands;
 
-use Tec\PluginManagement\Commands\Concern\HasPluginNameValidation;
 use Tec\PluginManagement\Services\PluginService;
+use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Console\PromptsForMissingInput;
-use Illuminate\Support\Str;
-use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Input\InputArgument;
 
-#[AsCommand('cms:plugin:deactivate', 'Deactivate a plugin in /plugins directory')]
-class PluginDeactivateCommand extends Command implements PromptsForMissingInput
+class PluginDeactivateCommand extends Command
 {
-    use HasPluginNameValidation;
+    /**
+     * The console command signature.
+     *
+     * @var string
+     */
+    protected $signature = 'cms:plugin:deactivate {name : The plugin that you want to deactivate}';
 
-    public function handle(PluginService $pluginService): int
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Deactivate a plugin in /plugins directory';
+
+    /**
+     * @var PluginService
+     */
+    protected $pluginService;
+
+    /**
+     * PluginDeactivateCommand constructor.
+     * @param PluginService $pluginService
+     */
+    public function __construct(PluginService $pluginService)
     {
-        $this->validatePluginName($this->argument('name'));
-
-        $plugin = Str::afterLast(strtolower($this->argument('name')), '/');
-
-        $result = $pluginService->deactivate($plugin);
-
-        if ($result['error']) {
-            $this->components->error($result['message']);
-
-            return self::FAILURE;
-        }
-
-        $this->components->info($result['message']);
-
-        return self::SUCCESS;
+        parent::__construct();
+        $this->pluginService = $pluginService;
     }
 
-    protected function configure(): void
+    /**
+     * @return boolean
+     * @throws Exception
+     */
+    public function handle()
     {
-        $this->addArgument('name', InputArgument::REQUIRED, 'The plugin that you want to deactivate');
+        if (!preg_match('/^[a-z0-9\-]+$/i', $this->argument('name'))) {
+            $this->error('Only alphabetic characters are allowed.');
+            return 1;
+        }
+
+        $plugin = strtolower($this->argument('name'));
+
+        $result = $this->pluginService->deactivate($plugin);
+
+        if ($result['error']) {
+            $this->error($result['message']);
+            return 1;
+        }
+
+        $this->info($result['message']);
+
+        return 0;
     }
 }
