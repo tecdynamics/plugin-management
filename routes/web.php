@@ -23,8 +23,7 @@ Route::group(['namespace' => 'Tec\PluginManagement\Http\Controllers'], function 
                 Route::delete('{plugin}', [
                     'as' => 'plugins.remove',
                     'uses' => 'PluginManagementController@destroy',
-                    'middleware' => 'preventDemo',
-                    'permission' => 'plugins.index',
+                  'permission' => 'plugins.index',
                 ]);
 
                 Route::post('check-requirement', [
@@ -64,8 +63,7 @@ Route::group(['namespace' => 'Tec\PluginManagement\Http\Controllers'], function 
                     Route::post('{id}/install', [
                         'as' => 'install',
                         'uses' => 'MarketplaceController@install',
-//                        'middleware' => 'preventDemo',
-                    ]);
+               ]);
 
                     Route::post('{id}/update/{name?}', [
                         'as' => 'update',
